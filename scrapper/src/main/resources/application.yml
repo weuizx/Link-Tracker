@@ -1,7 +1,7 @@
 app:
   scheduler:
     enable: true
-    interval: 10s
+    interval: 120s
     force-check-delay: 10s
 
   urls:
@@ -16,8 +16,18 @@ spring:
     url: jdbc:postgresql://localhost:5050/scrapper
     username: weuizx
     password: weuizx
-  liquibase:
-    enabled: false
+    driver-class-name: org.postgresql.Driver
+
+  flyway:
+    locations: classpath:db/migration
+    default-schema: public
+    schemas: public
+    enabled: true
+  jpa:
+    generate-ddl: true
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
 
 server:
   port: 8080

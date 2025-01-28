@@ -10,6 +10,7 @@ import java.util.List;
 
 @Component
 public class TelegramUserMessageProcessor implements UserMessageProcessor {
+
     private final List<Command> commands;
 
     @Autowired

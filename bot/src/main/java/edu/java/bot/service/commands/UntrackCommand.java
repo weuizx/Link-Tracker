@@ -2,36 +2,63 @@ package edu.java.bot.service.commands;
 
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
-import edu.java.bot.util.UrlChecker;
+import edu.java.bot.client.ScrapperClient;
+import edu.java.bot.client.dto.ClientDtoIn;
+import edu.java.bot.client.dto.LinkDto;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import java.util.Objects;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class UntrackCommand implements Command {
+
+    private final ScrapperClient scrapperClient;
+
+    private static final String COMMAND = "/untrack";
+    private static final String DESCRIPTION = "Прекратить отслеживание ресурса";
+    private static final String SUCCESS_MESSAGE = "Ссылка успешно удалена из отслеживания";
+    private static final String CLARIFYING_MESSAGE = "Для прекращения отслеживания ссылки после команды /untrack введите " +
+        "ссылку через пробел\n/untrack %ссылка%";
+    private static final String LINK_NOT_FOUND_MESSAGE = "Данная ссылка не отслеживалась. Введите /list для просмотра " +
+        "отслеживаемых ресурсов";
+
     @Override
     public String command() {
-        return "/untrack";
+        return COMMAND;
     }
 
     @Override
     public String description() {
-        return "Прекратить отслеживание ссылки";
+        return DESCRIPTION;
     }
 
     @Override
     public SendMessage handle(Update update) {
 
-        String messageText = "Введите ссылку";
+        long tgChatId = update.message().chat().id();
+        log.debug("UntrackCommand : username(tgChatId) :{}({})", update.message().chat().username(), tgChatId);
+
+        ClientDtoIn response = scrapperClient.getUserInfo(tgChatId);
+        if (Objects.isNull(response)){
+            return new SendMessage(tgChatId, USER_NOT_FOUND_MESSAGE);
+        }
+
         String input = update.message().text();
         int spaceIndex = input.indexOf(' ');
-        if (spaceIndex != -1) {
-            String url = input.substring(spaceIndex + 1);
-            if (UrlChecker.isValid(url)) {
 
-                //Проверить, что данная ссылка есть в списке
-                //Удаление ссылки из списка
-                messageText = "Ссылка успешно удалена из отслеживания: " + url;
-            }
+        if (spaceIndex == -1) {
+            return new SendMessage(update.message().chat().id(), CLARIFYING_MESSAGE);
         }
-        return new SendMessage(update.message().chat().id(), messageText);
+
+        String url = input.substring(spaceIndex + 1);
+        response = scrapperClient.removeLink(tgChatId, new LinkDto(url));
+        if (Objects.isNull(response)){
+            return new SendMessage(tgChatId, LINK_NOT_FOUND_MESSAGE);
+        }
+
+        return new SendMessage(tgChatId, SUCCESS_MESSAGE + " " + url);
     }
 }

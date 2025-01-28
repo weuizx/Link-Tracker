@@ -5,6 +5,10 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 
 public interface Command {
+
+    String USER_NOT_FOUND_MESSAGE = "Что-то пошло не так. Проверьте, что вы зарегистрированы " +
+        "командой /start";
+
     String command();
 
     String description();

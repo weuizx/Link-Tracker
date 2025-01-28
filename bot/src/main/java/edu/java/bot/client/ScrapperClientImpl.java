@@ -1,77 +1,105 @@
 package edu.java.bot.client;
 
+import edu.java.bot.client.dto.ClientDtoIn;
+import edu.java.bot.client.dto.LinkDto;
 import edu.java.bot.configuration.ApplicationConfig;
-import edu.java.bot.controllers.dto.AddLinkRequest;
-import edu.java.bot.controllers.dto.LinkResponse;
-import edu.java.bot.controllers.dto.ListLinksResponse;
-import edu.java.bot.controllers.dto.RemoveLinkRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
+@Slf4j
 @Component
-public class ScrapperClientImpl implements ScrapperClient{
-    private final WebClient webClient;
+public class ScrapperClientImpl implements ScrapperClient {
 
+    private final RestTemplate restTemplate;
+
+    private final String BASE_URL;
+
+    @Autowired
     public ScrapperClientImpl(ApplicationConfig applicationConfig) {
-        this.webClient = WebClient.builder()
-            .baseUrl(applicationConfig.scrapperBaseUrl())
-            .build();
-    }
-    @Override
-    public ResponseEntity<String> fetchRegisterChat(int id) {
-        String response = webClient.post()
-            .uri("/tg-chat/{id}", id)
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
-        return ResponseEntity.ok(response);
+        this.restTemplate = new RestTemplate();
+        BASE_URL = applicationConfig.scrapperBaseUrl() + "/tg-chat";
     }
 
     @Override
-    public ResponseEntity<String> fetchDeleteChat(int id) {
-        String response = webClient.delete()
-            .uri("tg-chat/{id}", id)
-            .retrieve()
-            .bodyToMono(String.class)
-            .block();
-        return ResponseEntity.ok(response);
+    public ClientDtoIn registerChat(long tgChatId) {
+
+        String url = BASE_URL + "/{id}";
+        try {
+            return restTemplate.postForObject(url, null, ClientDtoIn.class, tgChatId);
+        } catch (RestClientException e) {
+            log.info("Error while requesting {}. {}", url, e.getMessage());
+            return null;
+        }
     }
 
     @Override
-    public ListLinksResponse getLinks(int tgChatId) {
-        ListLinksResponse response = webClient.get()
-            .uri("/links")
-            .header("Tg-Chat-Id", String.valueOf(tgChatId))
-            .retrieve()
-            .bodyToMono(ListLinksResponse.class)
-            .block();
-        return response;
+    public void deleteChat(long tgChatId) {
+
+        String url = BASE_URL + "/{id}";
+        try {
+            restTemplate.delete(url, tgChatId);
+        } catch (RestClientException e) {
+            log.info("Error while requesting {}. {}", url, e.getMessage());
+            throw e;
+        }
     }
 
     @Override
-    public ResponseEntity<LinkResponse> addLink(int tgChatId, AddLinkRequest requestBody) {
-        LinkResponse response = webClient.post()
-            .uri("/links")
-            .header("Tg-Chat-Id", String.valueOf(tgChatId))
-            .body(Mono.just(requestBody), AddLinkRequest.class)
-            .retrieve()
-            .bodyToMono(LinkResponse.class)
-            .block();
-        return ResponseEntity.ok(response);
+    public ClientDtoIn getUserInfo(long tgChatId) {
+
+        String url = BASE_URL + "/{id}";
+        try {
+            return restTemplate.getForObject(url, ClientDtoIn.class, tgChatId);
+        } catch (RestClientException e) {
+            log.info("Error while requesting {}. {}", url, e.getMessage());
+            return null;
+        }
+
     }
 
     @Override
-    public ResponseEntity<LinkResponse> removeLink(int tgChatId, RemoveLinkRequest requestBody) {
-        LinkResponse response = webClient.method(HttpMethod.DELETE)
-            .uri("/links")
-            .header("Tg-Chat-Id", String.valueOf(tgChatId))
-            .body(Mono.just(requestBody), AddLinkRequest.class)
-            .retrieve()
-            .bodyToMono(LinkResponse.class)
-            .block();
-        return ResponseEntity.ok(response);
+    public ClientDtoIn addLink(long tgChatId, LinkDto linkDto) {
+
+        String url = BASE_URL + "/{id}" + "/add-link";
+        HttpEntity<LinkDto> httpEntity = new HttpEntity<>(linkDto);
+        try {
+            ResponseEntity<ClientDtoIn> response =
+                restTemplate.exchange(url, HttpMethod.PUT, httpEntity, ClientDtoIn.class, tgChatId);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return response.getBody();
+            } else {
+                log.info("Error while requesting {}. StatusCode {}", url, response.getStatusCode());
+                return null;
+            }
+        } catch (RestClientException e) {
+            log.info("Error while requesting {}. {}", url, e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public ClientDtoIn removeLink(long tgChatId, LinkDto linkDto) {
+
+        String url = BASE_URL + "/{id}" + "/remove-link";
+        HttpEntity<LinkDto> httpEntity = new HttpEntity<>(linkDto);
+        try {
+            ResponseEntity<ClientDtoIn> response =
+                restTemplate.exchange(url, HttpMethod.PUT, httpEntity, ClientDtoIn.class, tgChatId);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return response.getBody();
+            } else {
+                log.info("Error while requesting {}. StatusCode {}", url, response.getStatusCode());
+                return null;
+            }
+        } catch (RestClientException e) {
+            log.info("Error while requesting {}. {}", url, e.getMessage());
+            return null;
+        }
     }
 }

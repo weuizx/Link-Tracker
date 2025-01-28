@@ -9,6 +9,10 @@ import java.util.stream.Collectors;
 
 @Component
 public class HelpCommand implements Command {
+
+    private static final String COMMAND = "/help";
+    private static final String DESCRIPTION = "Вывести список доступных команд";
+
     private final List<Command> commands;
 
     @Autowired
@@ -16,14 +20,15 @@ public class HelpCommand implements Command {
         this.commands = commands;
         this.commands.addFirst(this);
     }
+
     @Override
     public String command() {
-        return "/help";
+        return COMMAND;
     }
 
     @Override
     public String description() {
-        return "Вывести список доступных команд";
+        return DESCRIPTION;
     }
 
     @Override

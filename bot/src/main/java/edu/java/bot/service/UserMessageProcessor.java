@@ -8,9 +8,11 @@ import edu.java.bot.service.commands.Command;
 import java.util.List;
 
 public interface UserMessageProcessor {
+
     List<? extends Command> commands();
 
     BotCommand[] commandsForMenu();
 
     SendMessage process(Update update);
+
 }
