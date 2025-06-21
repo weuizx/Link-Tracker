@@ -1,21 +1,25 @@
 app:
   scheduler:
     enable: true
-    interval: 120s
-    force-check-delay: 10s
+    interval: 120000
+    force-check-delay: 10000
 
   urls:
     gitHubBaseUrl: https://api.github.com/
     stackOverflowBaseUrl: https://api.stackexchange.com/
+    youTubeBaseUrl: https://youtube.googleapis.com/youtube/v3
     botBaseUrl: http://localhost:8090/
+
+  credentials:
+    youTubeKey: ${YOUTUBE_KEY}
 
 spring:
   application:
     name: scrapper
   datasource:
     url: jdbc:postgresql://localhost:5050/scrapper
-    username: weuizx
-    password: weuizx
+    username: ${PG_USERNAME}
+    password: ${PG_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   flyway:

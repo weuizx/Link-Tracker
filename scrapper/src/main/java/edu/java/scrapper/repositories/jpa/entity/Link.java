@@ -8,14 +8,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.SequenceGenerator;
+import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity(
     name = "link"
@@ -46,12 +46,16 @@ public class Link {
     )
     ZonedDateTime lastCheckDatetime;
 
+    @Column(
+        name = "videos_count"
+    )
+    Long videosCount;
+
     @ToString.Exclude
     @ManyToMany(
         mappedBy = "links",
         fetch = FetchType.EAGER
     )
     Set<Client> clients = new HashSet<>();
-
 
 }

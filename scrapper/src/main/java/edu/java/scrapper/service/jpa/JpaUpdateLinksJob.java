@@ -3,22 +3,25 @@ package edu.java.scrapper.service.jpa;
 import edu.java.scrapper.client.BotClient;
 import edu.java.scrapper.client.GitHubClient;
 import edu.java.scrapper.client.StackOverflowClient;
+import edu.java.scrapper.client.YouTubeClient;
 import edu.java.scrapper.client.dto.GitHubRepositoryResponse;
-import edu.java.scrapper.client.dto.StackOverflowQuestionResponse;
 import edu.java.scrapper.client.dto.NotifyUsersDtoOut;
+import edu.java.scrapper.client.dto.StackOverflowQuestionResponse;
+import edu.java.scrapper.client.dto.YouTubeChannelResponse;
+import edu.java.scrapper.client.dto.YouTubePlaylistResponse;
 import edu.java.scrapper.repositories.jpa.LinkRepository;
 import edu.java.scrapper.repositories.jpa.entity.Client;
 import edu.java.scrapper.repositories.jpa.entity.Link;
+import java.net.URI;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import java.net.URI;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 
 @Slf4j
 @Component
@@ -28,20 +31,23 @@ public class JpaUpdateLinksJob {
     private final LinkRepository linkRepository;
     private final GitHubClient gitHubClient;
     private final StackOverflowClient stackOverflowClient;
+    private final YouTubeClient youTubeClient;
     private final BotClient botClient;
 
-    private static final Long MINUTES = 10L;
+    private static final Long MINUTES = 1L;
+    private static final String PLAYLIST_PATTERN = "playlist";
     private static final String GITHUB_UPDATE_MESSAGE = "Обновление в репозитории";
     private static final String STACKOVERFLOW_UPDATE_MESSAGE = "Новая информация по вопросу";
+    private static final String YOUTUBE_CHANNEL_UPDATE_MESSAGE = "Новое видео на канале";
+    private static final String YOUTUBE_PLAYLIST_UPDATE_MESSAGE = "Новое видео добавлено в плейлист";
 
-    private static final Map<String, Consumer<Link>> handlerMap = new HashMap<>();
+    private final Map<String, Consumer<Link>> handlerMap = Map.of(
+        "github.com", this::gitHubHandle,
+        "stackoverflow.com", this::stackOverflowHandle,
+        "www.youtube.com", this::youTubeHandle
+    );
 
-    {
-        handlerMap.put("github.com", this::gitHubHandle);
-        handlerMap.put("stackoverflow.com", this::stackOverflowHandle);
-    }
-
-    @Scheduled(fixedDelayString = "#{@scheduler.interval}")
+    @Scheduled(fixedDelayString = "${app.scheduler.interval}")
     public void checkUpdates() {
 
         log.info("Process of checking for resource updates started");
@@ -103,6 +109,54 @@ public class JpaUpdateLinksJob {
 
             List<Long> tgChatIds = link.getClients().stream().map(Client::getTgChatId).toList();
             sendBotUpdates(link, STACKOVERFLOW_UPDATE_MESSAGE, tgChatIds);
+        }
+    }
+
+    private void youTubeHandle(Link link) {
+
+        log.info("YouTube handler started");
+        String playlistOrChannelId = URI.create(link.getUrl()).getPath().split("/")[1];
+        if (playlistOrChannelId.equalsIgnoreCase(PLAYLIST_PATTERN)) {
+            YouTubePlaylistResponse response = youTubeClient.fetchPlaylist(extractPlaylistId(link.getUrl()));
+            if (response.items().isEmpty()) {
+                return;
+            }
+            Long videosCount = response.items().getFirst().contentDetails().itemCount();
+            if (link.getVideosCount() != null && link.getVideosCount() < videosCount) {
+                List<Long> tgChatIds = link.getClients().stream().map(Client::getTgChatId).toList();
+                sendBotUpdates(link, YOUTUBE_PLAYLIST_UPDATE_MESSAGE, tgChatIds);
+            }
+            link.setVideosCount(videosCount);
+        } else {
+            YouTubeChannelResponse response = youTubeClient.fetchChannel(playlistOrChannelId);
+            if (response.items().isEmpty()) {
+                return;
+            }
+            Long videosCount = response.items().getFirst().statistics().videoCount();
+            if (link.getVideosCount() != null && link.getVideosCount() < videosCount) {
+                List<Long> tgChatIds = link.getClients().stream().map(Client::getTgChatId).toList();
+                sendBotUpdates(link, YOUTUBE_CHANNEL_UPDATE_MESSAGE, tgChatIds);
+            }
+            link.setVideosCount(videosCount);
+        }
+        linkRepository.save(link);
+    }
+
+    private String extractPlaylistId(String url) {
+        try {
+            URI uri = new URI(url);
+            String query = uri.getQuery();
+            if (query == null || query.isEmpty()) {
+                return "";
+            }
+
+            return Arrays.stream(query.split("&"))
+                .filter(param -> param.startsWith("list="))
+                .findFirst()
+                .map(param -> param.substring(5)).get();
+        } catch (Exception e) {
+            log.info("Unexpected error", e);
+            return "";
         }
     }
 

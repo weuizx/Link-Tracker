@@ -1,11 +1,9 @@
 package edu.java.scrapper;
 
-import edu.java.scrapper.client.GitHubClientImpl;
 import edu.java.scrapper.configuration.ApplicationConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableConfigurationProperties(ApplicationConfig.class)

@@ -12,10 +12,9 @@ import com.pengrad.telegrambot.response.SendResponse;
 import edu.java.bot.configuration.ApplicationConfig;
 import edu.java.bot.service.UserMessageProcessor;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -37,7 +36,8 @@ public class MyTelegramBot implements Bot {
             SendResponse sendResponse = bot.execute(sendMessageRequest);
             if (sendResponse.isOk()) {
                 log.info("Message sent to {}({})", sendResponse.message().chat().username(),
-                    sendResponse.message().chat().id());
+                    sendResponse.message().chat().id()
+                );
             }
         }
     }
