@@ -1,7 +1,7 @@
 package edu.java.scrapper.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public record StackOverflowQuestionResponse(
@@ -12,6 +12,7 @@ public record StackOverflowQuestionResponse(
         @JsonProperty("question_id")
         Long questionId,
 
+        @JsonProperty("title")
         String title,
 
         @JsonProperty("is_answered")
@@ -23,13 +24,14 @@ public record StackOverflowQuestionResponse(
         @JsonProperty("answer_count")
         int answerCount,
 
+        @JsonProperty("score")
         int score,
 
         @JsonProperty("creation_date")
-        OffsetDateTime creationDate,
+        ZonedDateTime creationDate,
 
         @JsonProperty("last_activity_date")
-        OffsetDateTime lastActivityDate
+        ZonedDateTime lastActivityDate
     ) {
     }
 }

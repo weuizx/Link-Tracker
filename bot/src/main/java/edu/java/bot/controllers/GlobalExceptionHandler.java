@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidRequestParametersException.class)
-    public ResponseEntity<ApiErrorResponse> handleInvalidRequestParametersException(InvalidRequestParametersException e){
+    public ResponseEntity<ApiErrorResponse> handleInvalidRequestParametersException(InvalidRequestParametersException e) {
         ApiErrorResponse body = new ApiErrorResponse(
             "Некорректные параметры запроса",
             HttpStatus.BAD_REQUEST.value(),

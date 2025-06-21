@@ -1,9 +1,9 @@
 package edu.java.scrapper.client;
 
-import edu.java.scrapper.controllers.dto.UpdateLinksRequest;
+import edu.java.scrapper.client.dto.NotifyUsersDtoOut;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
 public interface BotClient {
-    ResponseEntity<String> fetchUpdateLinks(@RequestBody UpdateLinksRequest requestBody);
+    ResponseEntity<String> fetchUpdateLinks(@RequestBody NotifyUsersDtoOut requestBody);
 }

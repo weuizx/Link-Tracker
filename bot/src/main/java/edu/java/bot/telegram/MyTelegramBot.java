@@ -12,16 +12,14 @@ import com.pengrad.telegrambot.response.SendResponse;
 import edu.java.bot.configuration.ApplicationConfig;
 import edu.java.bot.service.UserMessageProcessor;
 import jakarta.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 public class MyTelegramBot implements Bot {
-    private static final Logger log = LoggerFactory.getLogger(MyTelegramBot.class);
+
     private final UserMessageProcessor messageProcessor;
     private final TelegramBot bot;
 
@@ -36,35 +34,45 @@ public class MyTelegramBot implements Bot {
 
         if (request instanceof SendMessage sendMessageRequest) {
             SendResponse sendResponse = bot.execute(sendMessageRequest);
-            if (!sendResponse.isOk()) {
-                log.info("Сообщение отправлено пользователю " + sendResponse.message().chat().id());
+            if (sendResponse.isOk()) {
+                log.info("Message sent to {}({})", sendResponse.message().chat().username(),
+                    sendResponse.message().chat().id()
+                );
             }
         }
     }
 
     @Override
     public int process(List<Update> updates) {
+
         int processedUpdates = 0;
+
         for (Update update : updates) {
             if (update.message() != null) {
+                log.debug("{} : {}", update.message().chat().username(), update.message().text());
                 SendMessage sendMessage = messageProcessor.process(update).parseMode(ParseMode.HTML);
                 execute(sendMessage);
                 processedUpdates++;
             }
         }
+
         return processedUpdates;
     }
 
     @PostConstruct
     @Override
     public void start() {
+
         bot.setUpdatesListener(updates -> {
             process(updates);
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         }, e -> {
             if (e.response() != null) {
-                e.response().errorCode();
-                e.response().description();
+                log.info(
+                    "Exception while processing updates. Response code : {} description : {}",
+                    e.response().errorCode(),
+                    e.response().description()
+                );
             }
         });
     }

@@ -6,5 +6,5 @@ public record ApiErrorResponse(
     String exceptionName,
     String exceptionMessage,
     String[] stacktrace
-){
+) {
 }

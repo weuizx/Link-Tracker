@@ -4,12 +4,13 @@ import com.pengrad.telegrambot.model.BotCommand;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import edu.java.bot.service.commands.Command;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Component
 public class TelegramUserMessageProcessor implements UserMessageProcessor {
+
     private final List<Command> commands;
 
     @Autowired
