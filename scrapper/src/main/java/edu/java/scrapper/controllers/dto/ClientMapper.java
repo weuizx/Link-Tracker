@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 @Mapper(
     componentModel = "spring",
     uses = {LinkMapper.class},
-    unmappedTargetPolicy =  ReportingPolicy.ERROR,
+    unmappedTargetPolicy = ReportingPolicy.ERROR,
     unmappedSourcePolicy = ReportingPolicy.IGNORE
 )
 public abstract class ClientMapper {

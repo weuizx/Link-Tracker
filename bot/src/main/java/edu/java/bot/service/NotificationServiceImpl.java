@@ -4,11 +4,11 @@ import com.pengrad.telegrambot.request.SendMessage;
 import edu.java.bot.controllers.dto.NotifyUsersDtoIn;
 import edu.java.bot.controllers.exceptions.InvalidRequestParametersException;
 import edu.java.bot.telegram.MyTelegramBot;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 @Slf4j
 @Service

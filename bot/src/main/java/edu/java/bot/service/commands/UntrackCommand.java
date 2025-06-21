@@ -5,10 +5,10 @@ import com.pengrad.telegrambot.request.SendMessage;
 import edu.java.bot.client.ScrapperClient;
 import edu.java.bot.client.dto.ClientDtoIn;
 import edu.java.bot.client.dto.LinkDto;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -20,10 +20,12 @@ public class UntrackCommand implements Command {
     private static final String COMMAND = "/untrack";
     private static final String DESCRIPTION = "Прекратить отслеживание ресурса";
     private static final String SUCCESS_MESSAGE = "Ссылка успешно удалена из отслеживания";
-    private static final String CLARIFYING_MESSAGE = "Для прекращения отслеживания ссылки после команды /untrack введите " +
-        "ссылку через пробел\n/untrack %ссылка%";
-    private static final String LINK_NOT_FOUND_MESSAGE = "Данная ссылка не отслеживалась. Введите /list для просмотра " +
-        "отслеживаемых ресурсов";
+    private static final String CLARIFYING_MESSAGE =
+        "Для прекращения отслеживания ссылки после команды /untrack введите " +
+            "ссылку через пробел\n/untrack %ссылка%";
+    private static final String LINK_NOT_FOUND_MESSAGE =
+        "Данная ссылка не отслеживалась. Введите /list для просмотра " +
+            "отслеживаемых ресурсов";
 
     @Override
     public String command() {
@@ -42,7 +44,7 @@ public class UntrackCommand implements Command {
         log.debug("UntrackCommand : username(tgChatId) :{}({})", update.message().chat().username(), tgChatId);
 
         ClientDtoIn response = scrapperClient.getUserInfo(tgChatId);
-        if (Objects.isNull(response)){
+        if (Objects.isNull(response)) {
             return new SendMessage(tgChatId, USER_NOT_FOUND_MESSAGE);
         }
 
@@ -55,7 +57,7 @@ public class UntrackCommand implements Command {
 
         String url = input.substring(spaceIndex + 1);
         response = scrapperClient.removeLink(tgChatId, new LinkDto(url));
-        if (Objects.isNull(response)){
+        if (Objects.isNull(response)) {
             return new SendMessage(tgChatId, LINK_NOT_FOUND_MESSAGE);
         }
 

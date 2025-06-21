@@ -48,13 +48,19 @@ public class TelegramClientController {
     public ResponseEntity<ClientDtoOut> addLink(@PathVariable("id") long tgChatId, @RequestBody LinkDto linkDto)
         throws InvalidRequestParametersException, ChatNotFoundException, LinkExistsException {
 
-        return ResponseEntity.ok(clientMapper.clientToClientDtoOut(userService.addLinkForUser(tgChatId, linkDto.getUrl())));
+        return ResponseEntity.ok(clientMapper.clientToClientDtoOut(userService.addLinkForUser(
+            tgChatId,
+            linkDto.getUrl()
+        )));
     }
 
     @PutMapping("/{id}/remove-link")
     public ResponseEntity<ClientDtoOut> removeLink(@PathVariable("id") long tgChatId, @RequestBody LinkDto linkDto)
         throws InvalidRequestParametersException, ChatNotFoundException, LinkNotFoundException {
 
-        return ResponseEntity.ok(clientMapper.clientToClientDtoOut(userService.removeLinkForUser(tgChatId, linkDto.getUrl())));
+        return ResponseEntity.ok(clientMapper.clientToClientDtoOut(userService.removeLinkForUser(
+            tgChatId,
+            linkDto.getUrl()
+        )));
     }
 }

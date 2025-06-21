@@ -4,12 +4,10 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import edu.java.bot.client.ScrapperClient;
 import edu.java.bot.client.dto.ClientDtoIn;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -22,10 +20,10 @@ public class StartCommand implements Command {
     private static final String DESCRIPTION = "Начать работу с ботом";
     private static final String ALREADY_REGISTERED = "Ваш аккаунт уже зарегистрирован!\n" +
         "Введите /help для просмотра списка доступных команд.";
-    private static final String WELCOME_MESSAGE = "Привет! Ваш аккаунт успешно зарегистрирован.\nЭтот бот предназначен для отслеживания обновлений на " +
-        "интернет-ресурсах. Введите /help для просмотра списка доступных команд.";
+    private static final String WELCOME_MESSAGE =
+        "Привет! Ваш аккаунт успешно зарегистрирован.\nЭтот бот предназначен для отслеживания обновлений на " +
+            "интернет-ресурсах. Введите /help для просмотра списка доступных команд.";
     private static final String ERROR_MESSAGE = "Что-то пошло не так. Попробуйте позже.";
-
 
     @Override
     public String command() {
@@ -45,13 +43,16 @@ public class StartCommand implements Command {
 
         ClientDtoIn response = scrapperClient.getUserInfo(tgChatId);
 
-        if (!Objects.isNull(response)){
+        if (!Objects.isNull(response)) {
             return new SendMessage(update.message().chat().id(), ALREADY_REGISTERED);
         }
 
         response = scrapperClient.registerChat(tgChatId);
 
-        return new SendMessage(update.message().chat().id(), Objects.isNull(response) ? ERROR_MESSAGE : WELCOME_MESSAGE);
+        return new SendMessage(
+            update.message().chat().id(),
+            Objects.isNull(response) ? ERROR_MESSAGE : WELCOME_MESSAGE
+        );
     }
 }
 

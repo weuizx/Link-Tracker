@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Mapper(
     componentModel = "spring",
-    unmappedTargetPolicy =  ReportingPolicy.ERROR,
+    unmappedTargetPolicy = ReportingPolicy.ERROR,
     unmappedSourcePolicy = ReportingPolicy.IGNORE
 )
 public abstract class LinkMapper {

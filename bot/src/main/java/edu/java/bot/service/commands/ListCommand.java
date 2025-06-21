@@ -5,12 +5,11 @@ import com.pengrad.telegrambot.request.SendMessage;
 import edu.java.bot.client.ScrapperClient;
 import edu.java.bot.client.dto.ClientDtoIn;
 import edu.java.bot.client.dto.LinkDtoIn;
+import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 @Slf4j
 @Component
@@ -21,8 +20,9 @@ public class ListCommand implements Command {
 
     private static final String COMMAND = "/list";
     private static final String DESCRIPTION = "Показать список отслеживаемых ресурсов";
-    private static final String EMPTY_SET_MESSAGE = "Список отслеживаемых ресурсов пуст!\nИспользуйте /track чтобы добавить ссылку " +
-        "к отслеживанию";
+    private static final String EMPTY_SET_MESSAGE =
+        "Список отслеживаемых ресурсов пуст!\nИспользуйте /track чтобы добавить ссылку " +
+            "к отслеживанию";
 
     @Override
     public String command() {
@@ -41,20 +41,19 @@ public class ListCommand implements Command {
         log.debug("ListCommand : username(tgChatId) :{}({})", update.message().chat().username(), tgChatId);
 
         ClientDtoIn response = scrapperClient.getUserInfo(tgChatId);
-        if (Objects.isNull(response)){
+        if (Objects.isNull(response)) {
             return new SendMessage(tgChatId, USER_NOT_FOUND_MESSAGE);
         }
 
         Set<LinkDtoIn> links = response.getLinks();
-        if (links.isEmpty()){
+        if (links.isEmpty()) {
             return new SendMessage(tgChatId, EMPTY_SET_MESSAGE);
         }
 
         StringBuilder message = new StringBuilder("Список отслеживаемых ресурсов:\n");
-        for (LinkDtoIn link : links){
+        for (LinkDtoIn link : links) {
             message.append(link.getUrl()).append("\n");
         }
-
 
         return new SendMessage(tgChatId, message.toString());
     }

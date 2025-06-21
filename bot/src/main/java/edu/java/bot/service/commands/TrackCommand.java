@@ -6,10 +6,10 @@ import edu.java.bot.client.ScrapperClient;
 import edu.java.bot.client.dto.ClientDtoIn;
 import edu.java.bot.client.dto.LinkDto;
 import edu.java.bot.util.UrlChecker;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -18,11 +18,13 @@ public class TrackCommand implements Command {
 
     private final ScrapperClient scrapperClient;
 
-    private static final String COMMAND = "/track";;
+    private static final String COMMAND = "/track";
+    ;
     private static final String DESCRIPTION = "Начать отслеживание ресурса";
     private static final String SUCCESS_MESSAGE = "Ссылка успешно добавлена к отслеживанию";
-    private static final String CLARIFYING_MESSAGE = "Для добавления ссылки к отслеживанию после команды /track через пробел введите " +
-        "ссылку для отслеживания\n/track %ссылка для отслеживания%";
+    private static final String CLARIFYING_MESSAGE =
+        "Для добавления ссылки к отслеживанию после команды /track через пробел введите " +
+            "ссылку для отслеживания\n/track %ссылка для отслеживания%";
     private static final String ALREADY_TRACKING_MESSAGE = "Ссылка уже отслеживается. Введите /list для просмотра " +
         "отслеживаемых ресурсов";
     private static final String NOT_VALID_MESSAGE = "Вы ввели некорректную ссылку. Ссылка должна начинаться с " +
@@ -45,7 +47,7 @@ public class TrackCommand implements Command {
         log.debug("TrackCommand : username(tgChatId) :{}({})", update.message().chat().username(), tgChatId);
 
         ClientDtoIn response = scrapperClient.getUserInfo(tgChatId);
-        if (Objects.isNull(response)){
+        if (Objects.isNull(response)) {
             return new SendMessage(tgChatId, USER_NOT_FOUND_MESSAGE);
         }
 
@@ -62,7 +64,7 @@ public class TrackCommand implements Command {
         }
 
         response = scrapperClient.addLink(tgChatId, new LinkDto(url));
-        if (Objects.isNull(response)){
+        if (Objects.isNull(response)) {
             return new SendMessage(tgChatId, ALREADY_TRACKING_MESSAGE);
         }
 

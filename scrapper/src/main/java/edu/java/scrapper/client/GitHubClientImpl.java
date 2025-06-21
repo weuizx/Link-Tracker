@@ -1,13 +1,12 @@
 package edu.java.scrapper.client;
 
-
 import edu.java.scrapper.client.dto.GitHubCommitResponse;
 import edu.java.scrapper.client.dto.GitHubRepositoryResponse;
 import edu.java.scrapper.configuration.ApplicationConfig;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.WebClient;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Component
 public class GitHubClientImpl implements GitHubClient {

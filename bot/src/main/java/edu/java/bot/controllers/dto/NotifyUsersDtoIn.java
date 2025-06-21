@@ -8,5 +8,5 @@ public record NotifyUsersDtoIn(
     String url,
     String description,
     List<Long> tgChatIds
-){
+) {
 }

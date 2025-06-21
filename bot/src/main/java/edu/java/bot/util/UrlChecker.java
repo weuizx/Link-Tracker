@@ -1,7 +1,7 @@
 package edu.java.bot.util;
 
-import lombok.experimental.UtilityClass;
 import java.net.URL;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class UrlChecker {
