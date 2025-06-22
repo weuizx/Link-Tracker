@@ -2,9 +2,11 @@ package edu.java.scrapper.service.jpa;
 
 import edu.java.scrapper.client.BotClient;
 import edu.java.scrapper.client.GitHubClient;
+import edu.java.scrapper.client.HabrClient;
 import edu.java.scrapper.client.StackOverflowClient;
 import edu.java.scrapper.client.YouTubeClient;
 import edu.java.scrapper.client.dto.GitHubRepositoryResponse;
+import edu.java.scrapper.client.dto.HabrRssResponse;
 import edu.java.scrapper.client.dto.NotifyUsersDtoOut;
 import edu.java.scrapper.client.dto.StackOverflowQuestionResponse;
 import edu.java.scrapper.client.dto.YouTubeChannelResponse;
@@ -14,12 +16,15 @@ import edu.java.scrapper.repositories.jpa.entity.Client;
 import edu.java.scrapper.repositories.jpa.entity.Link;
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -32,26 +37,34 @@ public class JpaUpdateLinksJob {
     private final GitHubClient gitHubClient;
     private final StackOverflowClient stackOverflowClient;
     private final YouTubeClient youTubeClient;
+    private final HabrClient habrClient;
     private final BotClient botClient;
+    @Value("${app.scheduler.force-check-delay:600000}")
+    private Long millis;
 
-    private static final Long MINUTES = 1L;
     private static final String PLAYLIST_PATTERN = "playlist";
     private static final String GITHUB_UPDATE_MESSAGE = "Обновление в репозитории";
     private static final String STACKOVERFLOW_UPDATE_MESSAGE = "Новая информация по вопросу";
     private static final String YOUTUBE_CHANNEL_UPDATE_MESSAGE = "Новое видео на канале";
     private static final String YOUTUBE_PLAYLIST_UPDATE_MESSAGE = "Новое видео добавлено в плейлист";
+    private static final String HABR_UPDATE_MESSAGE = "Автор опубликовал новую статью";
+
+    private static final DateTimeFormatter
+        rssDateFormatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
 
     private final Map<String, Consumer<Link>> handlerMap = Map.of(
         "github.com", this::gitHubHandle,
         "stackoverflow.com", this::stackOverflowHandle,
-        "www.youtube.com", this::youTubeHandle
+        "www.youtube.com", this::youTubeHandle,
+        "habr.com", this::habrHandle
     );
 
     @Scheduled(fixedDelayString = "${app.scheduler.interval}")
     public void checkUpdates() {
 
         log.info("Process of checking for resource updates started");
-        List<Link> links = linkRepository.findAllByLastCheckDatetimeBefore(ZonedDateTime.now().minusMinutes(MINUTES));
+        List<Link> links =
+            linkRepository.findAllByLastCheckDatetimeBefore(ZonedDateTime.now().minusSeconds(millis / 1000));
         log.info("{} links found", links.size());
         for (Link link : links) {
 
@@ -140,6 +153,22 @@ public class JpaUpdateLinksJob {
             link.setVideosCount(videosCount);
         }
         linkRepository.save(link);
+    }
+
+    private void habrHandle(Link link) {
+
+        log.info("Habr handler started");
+        String username = URI.create(link.getUrl()).getPath().split("/")[3];
+        HabrRssResponse response = habrClient.fetchUserArticles(username);
+        ZonedDateTime lastPublishedDateTime = response.channel().items().stream()
+            .map(HabrRssResponse.Item::pubDate)
+            .map(dateStr -> ZonedDateTime.parse(dateStr, rssDateFormatter))
+            .max(ZonedDateTime::compareTo)
+            .orElse(null);
+        if (lastPublishedDateTime != null && link.getLastCheckDatetime().isBefore(lastPublishedDateTime)) {
+            List<Long> tgChatIds = link.getClients().stream().map(Client::getTgChatId).toList();
+            sendBotUpdates(link, HABR_UPDATE_MESSAGE, tgChatIds);
+        }
     }
 
     private String extractPlaylistId(String url) {

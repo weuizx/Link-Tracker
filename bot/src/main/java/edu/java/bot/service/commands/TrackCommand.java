@@ -5,6 +5,7 @@ import com.pengrad.telegrambot.request.SendMessage;
 import edu.java.bot.client.ScrapperClient;
 import edu.java.bot.client.dto.ClientDtoIn;
 import edu.java.bot.client.dto.LinkDto;
+import edu.java.bot.service.AcceptableResource;
 import edu.java.bot.util.UrlChecker;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +28,10 @@ public class TrackCommand implements Command {
             "ссылку для отслеживания\n/track %ссылка для отслеживания%";
     private static final String ALREADY_TRACKING_MESSAGE = "Ссылка уже отслеживается. Введите /list для просмотра " +
         "отслеживаемых ресурсов";
-    private static final String NOT_VALID_MESSAGE = "Вы ввели некорректную ссылку. Ссылка должна начинаться с " +
-        "(http|https)://";
+    private static final String NOT_VALID_MESSAGE = """
+        Вы ввели некорректную ссылку.
+        Ресурсы доступные для добавления:
+        """;
 
     @Override
     public String command() {
@@ -60,7 +63,11 @@ public class TrackCommand implements Command {
 
         String url = input.substring(spaceIndex + 1);
         if (!UrlChecker.isValid(url)) {
-            return new SendMessage(tgChatId, NOT_VALID_MESSAGE);
+            StringBuilder message = new StringBuilder(NOT_VALID_MESSAGE);
+            for (AcceptableResource resource : AcceptableResource.values()) {
+                message.append(resource.getTemplate()).append("\n");
+            }
+            return new SendMessage(tgChatId, message.toString());
         }
 
         response = scrapperClient.addLink(tgChatId, new LinkDto(url));

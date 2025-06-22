@@ -36,6 +36,8 @@ public record ApplicationConfig(
         @NotNull
         String youTubeBaseUrl,
         @NotNull
+        String habrBaseUrl,
+        @NotNull
         String botBaseUrl
     ) {
     }

@@ -1,13 +1,14 @@
 app:
   scheduler:
     enable: true
-    interval: 120000
-    force-check-delay: 10000
+    interval: 60000
+    force-check-delay: 600000
 
   urls:
     gitHubBaseUrl: https://api.github.com/
     stackOverflowBaseUrl: https://api.stackexchange.com/
-    youTubeBaseUrl: https://youtube.googleapis.com/youtube/v3
+    youTubeBaseUrl: https://youtube.googleapis.com/youtube/v3/
+    habrBaseUrl: https://habr.com/
     botBaseUrl: http://localhost:8090/
 
   credentials:

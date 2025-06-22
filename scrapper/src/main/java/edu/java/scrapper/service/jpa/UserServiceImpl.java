@@ -67,11 +67,12 @@ public class UserServiceImpl {
             link.setLastCheckDatetime(ZonedDateTime.now());
             link = linkRepository.save(link);
         } else {
-            throw new LinkExistsException("Link already exists");
-//            link = possibleLink.get();
+            link = possibleLink.get();
         }
 
-        client.getLinks().add(link);
+        if (!client.getLinks().add(link)) {
+            throw new LinkExistsException("Link already tracking for this user");
+        }
         clientRepository.save(client);
 
         return client;
@@ -82,18 +83,18 @@ public class UserServiceImpl {
         Client client = getUserByTgChatId(tgChatId);
 
         Optional<Link> possibleLink = linkRepository.findByUrl(url);
-        if (possibleLink.isEmpty()) {
-            throw new LinkNotFoundException("Link not found");
-        }
+        Link link = linkRepository.findByUrl(url)
+            .orElseThrow(() -> new LinkNotFoundException("Link not found"));
 
-        Link link = possibleLink.get();
         if (!client.getLinks().remove(link)) {
             throw new LinkNotFoundException("Link don't tracking for this user");
         }
 
         client = clientRepository.save(client);
 
-        if (link.getClients().isEmpty()) {
+        // Проверяем связь через промежуточную таблицу
+        boolean isLinkUsed = clientRepository.existsByLinksContaining(link);
+        if (!isLinkUsed) {
             linkRepository.delete(link);
         }
 
